@@ -1,0 +1,171 @@
+{
+    "name": "Python Backend -> Green API WhatsApp Sender",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "send-whatsapp",
+                "authentication": "none",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-trigger",
+            "name": "Webhook (from Python backend)",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                300
+            ],
+            "webhookId": "send-whatsapp"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict"
+                    },
+                    "conditions": [
+                        {
+                            "id": "cond1",
+                            "leftValue": "={{ $json.body?.to || $json.body?.phone }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty"
+                            }
+                        },
+                        {
+                            "id": "cond2",
+                            "leftValue": "={{ $json.body?.message }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "id": "validate-input",
+            "name": "Validate Payload",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{ $env.GREEN_API_HOST }}/waInstance{{ $env.GREEN_API_ID_INSTANCE }}/sendMessage/{{ $env.GREEN_API_TOKEN }}",
+                "authentication": "none",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ {\n  chatId: ($json.body?.to || $json.body?.phone || '').replace(/\\D/g, '').replace(/^(\\d{10})$/, '91$1') + '@c.us',\n  message: $json.body?.message\n} }}",
+                "options": {}
+            },
+            "id": "send-whatsapp-message",
+            "name": "Send WhatsApp via Green API",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                700,
+                220
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ {\n  status: 'sent',\n  to: $('Webhook (from Python backend)').item.json.body?.to || $('Webhook (from Python backend)').item.json.body?.phone,\n  green_api_response: $json\n} }}",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "id": "respond-success",
+            "name": "Respond Success",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                920,
+                220
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ {\n  status: 'error',\n  message: \"Missing required fields: 'to' and 'message' are required.\"\n} }}",
+                "options": {
+                    "responseCode": 400
+                }
+            },
+            "id": "respond-validation-error",
+            "name": "Respond Validation Error",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                700,
+                400
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook (from Python backend)": {
+            "main": [
+                [
+                    {
+                        "node": "Validate Payload",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validate Payload": {
+            "main": [
+                [
+                    {
+                        "node": "Send WhatsApp via Green API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Respond Validation Error",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Send WhatsApp via Green API": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Success",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}

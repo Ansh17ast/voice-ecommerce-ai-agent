@@ -1,0 +1,72 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python runtime and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Call dumps, recordings, and runtime logs
+recent_calls*.json
+latest_call*.json
+call_*_details.json
+*.log
+logs/
+
+# Scratch & Temporary Exploration Scripts
+scratch_*.py
+
+# Third-party vendor specifications (unverified redistribution license)
+omnidim_openapi.yaml
+
+# IDE & Editor configurations
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Operating System files
+Thumbs.db
+Desktop.ini
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
