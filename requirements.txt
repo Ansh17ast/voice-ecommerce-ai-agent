@@ -9,3 +9,6 @@ httpx==0.28.1
 
 # Optional / Utility (Architecture Diagram Generation)
 matplotlib==3.11.1
+
+# Testing & Verification
+pytest>=8.0.0

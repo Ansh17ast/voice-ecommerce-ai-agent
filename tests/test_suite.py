@@ -33,6 +33,30 @@ from whatsapp_service import (
     MY_CONTACT_NAME,
     check_instance_state
 )
+import whatsapp_service
+
+# When running in CI or offline without live Green API credentials, mock external WhatsApp network dispatch
+IS_MOCK_MODE = (
+    os.getenv("CI") == "true"
+    or os.getenv("MOCK_EXTERNAL_APIS") == "true"
+    or not os.getenv("GREEN_API_TOKEN")
+    or "your_" in os.getenv("GREEN_API_TOKEN", "")
+)
+
+if IS_MOCK_MODE:
+    if not whatsapp_service.GREEN_API_ID_INSTANCE:
+        whatsapp_service.GREEN_API_ID_INSTANCE = "mock_instance"
+    if not whatsapp_service.GREEN_API_TOKEN:
+        whatsapp_service.GREEN_API_TOKEN = "mock_token"
+
+    async def _mock_send_text(phone_or_chat_id: str, text: str):
+        return {"idMessage": "3EB023B77752412B8335CD", "statusMessage": "sent"}
+
+    async def _mock_send_file(phone_or_chat_id: str, file_path: str, filename: str, caption: str = ""):
+        return {"idMessage": "3EB02CFDAF469865AAB0FB", "statusMessage": "sent"}
+
+    whatsapp_service.send_whatsapp_text = _mock_send_text
+    whatsapp_service.send_whatsapp_file = _mock_send_file
 
 client = TestClient(app)
 
